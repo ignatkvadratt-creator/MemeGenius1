@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111116">
+<title>Meme Genius</title>
+<style>
+:root{--bg:#101015;--panel:#1a1a22;--panel2:#23232d;--text:#f5f4fa;--muted:#a6a4b3;--accent:#b69cff;--accent2:#8b6cf0;--line:#33323f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#33244e 0,transparent 48%),var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:auto;padding:22px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.logo{font-weight:900;letter-spacing:.08em;font-size:21px}.logo span{color:var(--accent)}
+.pill{font-size:12px;color:#d9ceff;background:#342951;border:1px solid #514071;padding:5px 9px;border-radius:99px}
+h1{font-size:clamp(27px,6vw,39px);line-height:1.08;margin:8px 0 10px;letter-spacing:-.04em}
+.sub{color:var(--muted);margin:0 0 22px}
+.card{background:linear-gradient(160deg,#1d1c26,#17171e);border:1px solid var(--line);border-radius:20px;padding:17px;margin:14px 0;box-shadow:0 12px 35px #0002}
+.card h2{font-size:16px;margin:0 0 12px}
+.drop{display:flex;min-height:180px;align-items:center;justify-content:center;flex-direction:column;gap:8px;border:1.5px dashed #625778;background:#211e2b;border-radius:15px;text-align:center;padding:16px;cursor:pointer}
+.drop strong{font-size:16px}.drop small{color:var(--muted)}.drop img{max-width:100%;max-height:290px;object-fit:contain;border-radius:10px}
+input[type=file]{display:none}
+label.field{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}
+input[type=password],input[type=text],select,textarea{width:100%;background:#111118;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:13px;font:inherit;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.style{background:#24232d;border:1px solid #3b3948;border-radius:12px;padding:11px;color:var(--text);text-align:left;font:inherit;cursor:pointer}
+.style.active{border-color:var(--accent);background:#342b49;color:#eee8ff}
+button.primary{width:100%;border:0;border-radius:14px;background:linear-gradient(100deg,#9b7af4,#c08bfa);color:#17121f;font-weight:800;font-size:16px;padding:15px;margin-top:14px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{color:var(--muted);font-size:13px;min-height:20px;margin-top:10px}
+.result{border:1px solid var(--line);border-radius:14px;padding:13px;background:#17171f;margin:10px 0}
+.result p{margin:0 0 10px;white-space:pre-wrap}
+.result button,.secondary{border:1px solid #51476a;background:#292536;color:#e9e1ff;border-radius:10px;padding:9px 12px;font:inherit;font-size:13px;cursor:pointer}
+.meme-preview{position:relative;margin:12px 0;background:#09090c;border-radius:14px;overflow:hidden}
+.meme-preview img{display:block;width:100%;max-height:520px;object-fit:contain}
+.meme-caption{position:absolute;left:5%;right:5%;top:5%;color:white;text-align:center;font-weight:1000;text-transform:uppercase;font-family:Impact,"Arial Black",sans-serif;font-size:clamp(22px,6vw,42px);line-height:1.05;letter-spacing:.02em;text-shadow:2px 2px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,0 4px 8px #000}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}
+.note{font-size:12px;color:var(--muted);line-height:1.45}
+.hidden{display:none!important}
+@media(min-width:600px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="logo">MEME <span>GENIUS</span></div><div class="pill">AI • RU</div></header>
+<h1>Пусть фотография<br>сама себя высмеет.</h1>
+<p class="sub">Загрузи снимок — Gemini найдёт комичную деталь и предложит панчи. Без «понедельник, держись».</p>
+
+<section class="card">
+<h2>1. Выбери фотографию</h2>
+<label class="drop" for="photo" id="drop">
+<div id="uploadHint"><div style="font-size:32px">＋</div><strong>Нажми, чтобы выбрать фото</strong><small>JPG, PNG или WEBP · до 8 МБ</small></div>
+<img id="preview" class="hidden" alt="Предпросмотр фотографии">
+</label>
+<input id="photo" type="file" accept="image/png,image/jpeg,image/webp">
+</section>
+
+<section class="card">
+<h2>2. Выбери подход к юмору</h2>
+<p class="note" style="margin:0 0 10px">Можно выбрать стиль самому или доверить выбор ИИ — он подберёт юмор под конкретную фотографию.</p>
+<div class="grid" id="styles">
+<button class="style active" data-style="Автоматически выбери самый подходящий стиль юмора по содержимому фотографии. Не ограничивайся одной категорией: выбери тот подход, который даст самый смешной и неожиданный результат.">✨ Выбор ИИ</button>
+<button class="style" data-style="Сарказм и сухая ирония">🙃 Сарказм</button>
+<button class="style" data-style="Абсурд, неожиданные нелепые повороты">🌀 Абсурд</button>
+<button class="style" data-style="Острый, но не жестокий чёрный юмор">🖤 Чёрный юмор</button>
+<button class="style" data-style="Узнаваемые жизненные ситуации">🫠 Жиза</button>
+</div>
+<label class="field" for="extra">Дополнительное пожелание (необязательно)</label>
+<input id="extra" type="text" maxlength="160" placeholder="Например: как будто это рабочий чат">
+</section>
+
+<section class="card">
+<h2>3. Подключи Gemini</h2>
+<label class="field" for="apiKey">Твой API-ключ</label>
+<input id="apiKey" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Вставь ключ из Google AI Studio">
+<div class="row" style="margin-top:9px"><button class="secondary" id="clearKey" type="button">Очистить ключ</button></div>
+<div class="note" style="margin-top:8px">Ключ не записывается в файл, историю приложения, cookies или хранилище браузера. Он остаётся только в памяти открытой страницы и отправляется напрямую в Google по HTTPS. При закрытии/перезагрузке страницы поле очищается. Используй файл только на своём устройстве и не делись им с ключом, введённым в поле. Для абсолютной защиты клиентского приложения нужен серверный посредник.</div>
+</section>
+
+<button class="primary" id="generate">СГЕНЕРИРОВАТЬ 10 ШУТОК</button>
+<div class="status" id="status" role="status"></div>
+
+<section class="card hidden" id="resultsCard">
+<h2>Выбери самый смешной вариант</h2>
+<div id="results"></div>
+</section>
+
+<section class="card hidden" id="editor">
+<h2>Твой мем</h2>
+<div class="meme-preview" id="meme">
+<img id="memeImg" alt="Изображение для мема">
+<div class="meme-caption" id="caption"></div>
+</div>
+<label class="field" for="captionInput">Текст на меме</label>
+<textarea id="captionInput" rows="3" maxlength="180"></textarea>
+<div class="row">
+<button class="secondary" id="download">СОХРАНИТЬ МЕМ</button>
+<button class="secondary" id="again">ЕЩЁ РАЗ</button>
+</div>
+</section>
+<p class="note">Meme Genius — экспериментальная версия. Качество шуток зависит от фотографии и ответа модели. Не загружай чужие личные или чувствительные фотографии без разрешения.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let selectedFile=null, selectedStyle='Автоматически выбери самый подходящий стиль юмора по содержимому фотографии. Не ограничивайся одной категорией: выбери тот подход, который даст самый смешной и неожиданный результат.', jokes=[];
+$('styles').addEventListener('click',e=>{const b=e.target.closest('button[data-style]');if(!b)return;document.querySelectorAll('.style').forEach(x=>x.classList.toggle('active',x===b));selectedStyle=b.dataset.style;});
+$('photo').addEventListener('change',()=>{const f=$('photo').files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){setStatus('Выбери JPG, PNG или WEBP.');return}if(f.size>8*1024*1024){setStatus('Файл больше 8 МБ. Выбери фотографию поменьше.');return}selectedFile=f;const u=URL.createObjectURL(f);$('preview').src=u;$('preview').classList.remove('hidden');$('uploadHint').classList.add('hidden');$('memeImg').src=u;});
+function setStatus(t){$('status').textContent=t}
+
+$('clearKey').addEventListener('click',()=>{$('apiKey').value='';setStatus('Поле API-ключа очищено.');});
+window.addEventListener('pagehide',()=>{$('apiKey').value='';});
+
+function fileBase64(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=reject;r.readAsDataURL(file)})}
+function extractText(data){if(data.output_text)return data.output_text;for(const s of (data.steps||[])){if(s.type==='model_output'){for(const c of (s.content||[])){if(c.type==='text'&&c.text)return c.text}}}return ''}
+function parseJokes(text){try{let t=text.replace(/```json|```/g,'').trim();let a=JSON.parse(t);if(Array.isArray(a))return a.map(x=>typeof x==='string'?x:(x.caption||x.text||'')).filter(Boolean).slice(0,10)}catch{}return text.split(/\n+/).map(x=>x.replace(/^\s*(?:\d+[\).]|[-•])\s*/,'').trim()).filter(x=>x.length>3).slice(0,10)}
+$('generate').addEventListener('click',async()=>{
+ if(!selectedFile){setStatus('Сначала выбери фотографию.');return}
+ const key=$('apiKey').value.trim();if(!key){setStatus('Вставь API-ключ Gemini.');$('apiKey').focus();return}
+ $('generate').disabled=true;$('resultsCard').classList.add('hidden');$('editor').classList.add('hidden');setStatus('Gemini рассматривает фотографию и ищет смешной угол…');
+ try{
+  const data=await fileBase64(selectedFile);
+  const prompt=`Ты — сильный комедийный автор мемов на русском языке. Внимательно проанализируй изображение: детали, выражения, предметы, ситуацию и возможные неожиданные трактовки. Придумай РОВНО 10 действительно разных коротких подписей для мема в стиле: ${selectedStyle}. ${$('extra').value.trim()?'Дополнительное пожелание: '+$('extra').value.trim()+'.':''}
+Если выбран автоматический режим, сначала самостоятельно определи, какая категория юмора лучше всего подходит именно этой фотографии (например: сарказм, абсурд, ирония, ситуативный юмор, игра слов или мягкий чёрный юмор), и используй её. Не сообщай категорию отдельно. Требования: шутки должны быть конкретно привязаны к этому фото, с неожиданным поворотом, точной формулировкой и естественным русским языком. Не описывай очевидное. Не используй шаблоны вроде «когда понедельник», «это я», «ожидание/реальность», если только это не превращено в оригинальную шутку. Не повторяй одну идею разными словами. Без пояснений, без вступления, без эмодзи. Верни только валидный JSON-массив из 10 строк. Каждая строка — готовая подпись, желательно до 140 символов.`;
+  const endpoint='https://generativelanguage.googleapis.com/v1beta/interactions';
+  const models=['gemini-3.8-flash','gemini-3.5-flash-lite'];
+  let body=null, lastError=null, response=null;
+  for(let i=0;i<models.length;i++){
+    setStatus(i===0?'Пробуем Gemini Flash…':'Переключаюсь на запасную модель…');
+    for(let attempt=0;attempt<2;attempt++){
+      try{
+        response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({model:models[i],input:[{type:'image',mime_type:selectedFile.type,data},{type:'text',text:prompt}]})});
+        body=await response.json();
+        if(response.ok)break;
+        const msg=body.error?.message||`Ошибка API: ${response.status}`;
+        lastError=new Error(msg);
+        if(response.status!==503 && response.status!==429)throw lastError;
+        if(attempt===0){setStatus('Сервис занят. Повторяю запрос…');await new Promise(r=>setTimeout(r,2500));}
+      }catch(err){lastError=err;if(response && response.status!==503 && response.status!==429)throw err;}
+    }
+    if(response && response.ok)break;
+  }
+  if(!response || !response.ok)throw new Error('Сейчас обе модели Google перегружены или недоступны. Подожди немного и попробуй снова. Последняя ошибка: '+(lastError?.message||'нет ответа'));
+  const out=extractText(body);if(!out)throw new Error('Gemini вернул пустой ответ. Попробуй ещё раз.');
+  jokes=parseJokes(out);if(!jokes.length)throw new Error('Не удалось разобрать ответ. Нажми «Ещё раз».');
+  $('results').innerHTML='';jokes.forEach((j,i)=>{const div=document.createElement('div');div.className='result';const p=document.createElement('p');p.textContent=(i+1)+'. '+j;const b=document.createElement('button');b.textContent='Выбрать эту шутку';b.addEventListener('click',()=>choose(j));div.append(p,b);$('results').append(div)});
+  $('resultsCard').classList.remove('hidden');setStatus(`Готово: ${jokes.length} вариантов. Выбирай лучший.`);
+ }catch(e){setStatus('Не получилось: '+e.message+' Проверь ключ, интернет и доступность модели.')}
+ finally{$('generate').disabled=false}
+});
+function choose(j){$('editor').classList.remove('hidden');$('captionInput').value=j;$('caption').textContent=j;$('editor').scrollIntoView({behavior:'smooth',block:'start'})}
+$('captionInput').addEventListener('input',()=>$('caption').textContent=$('captionInput').value);
+$('again').addEventListener('click',()=>$('generate').click());
+$('download').addEventListener('click',async()=>{
+ if(!selectedFile)return;const img=$('memeImg');const canvas=document.createElement('canvas');const maxW=1200,scale=Math.min(1,maxW/img.naturalWidth);canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ const text=$('captionInput').value.trim().toUpperCase();const lines=wrapText(ctx,text,canvas.width*.9);const fontSize=Math.max(24,Math.min(58,canvas.width*.075));ctx.font=`1000 ${fontSize}px Impact, Arial Black, sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';ctx.lineJoin='round';ctx.lineWidth=Math.max(4,fontSize*.11);const lineH=fontSize*1.08;let y=canvas.height*.045;for(const line of lines.slice(0,4)){ctx.strokeStyle='black';ctx.strokeText(line,canvas.width/2,y,canvas.width*.9);ctx.fillStyle='white';ctx.fillText(line,canvas.width/2,y,canvas.width*.9);y+=lineH}
+ canvas.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='meme-genius.png';a.click();URL.revokeObjectURL(a.href)},'image/png');
+});
+function wrapText(ctx,text,max){const words=text.split(/\s+/);let lines=[],line='';const fs=ctx.font;ctx.font=`1000 ${Math.max(24,Math.min(58,1200*.075))}px Impact, Arial Black, sans-serif`;for(const w of words){const t=line?line+' '+w:w;if(ctx.measureText(t).width>max&&line){lines.push(line);line=w}else line=t}if(line)lines.push(line);ctx.font=fs;return lines}
+</script>
+</body>
+</html>
